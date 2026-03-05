@@ -1,7 +1,7 @@
 name: Flutter Android Build
 
 on:
-  workflow_dispatch:  # manuel çalıştırma
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -17,12 +17,23 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 3.41.4  # stable yerine direk sürüm numarası
+          flutter-version: 3.41.4
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/retro_snake.keystore
+
+      - name: Create key.properties
+        run: |
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=retro_snake_key" >> android/key.properties
+          echo "storeFile=retro_snake.keystore" >> android/key.properties
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK
+      - name: Build release APK
         run: flutter build apk --release
 
       - name: Upload APK artifact
